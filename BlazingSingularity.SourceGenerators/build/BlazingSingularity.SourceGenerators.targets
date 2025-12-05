@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <!--
+    This targets file automatically copies analyzer dependencies for project-referenced analyzers.
+    It provides parity with NuGet-packaged analyzers by ensuring transitive dependencies are available.
+  -->
+  <PropertyGroup>
+    <EnableAnalyzerDependencyCopying Condition="'$(EnableAnalyzerDependencyCopying)' == ''"
+      >true</EnableAnalyzerDependencyCopying
+    >
+  </PropertyGroup>
+  <!-- Target to copy analyzer dependencies before compilation -->
+  <Target
+    Name="CopyProjectReferencedAnalyzerDependencies"
+    BeforeTargets="CoreCompile"
+    DependsOnTargets="ResolveProjectReferences"
+    Condition="'$(EnableAnalyzerDependencyCopying)' == 'true'"
+  >
+    <!-- Find all project references that are analyzers -->
+    <ItemGroup>
+      <_AnalyzerProjectReferences
+        Include="@(ProjectReference)"
+        Condition="'%(ProjectReference.OutputItemType)' == 'Analyzer'"
+      />
+    </ItemGroup>
+    <!-- Get the project reference paths -->
+    <ItemGroup Condition="'@(_AnalyzerProjectReferences)' != ''">
+      <_AnalyzerAssemblies
+        Include="@(_ResolvedProjectReferencePaths)"
+        Condition="'%(_ResolvedProjectReferencePaths.ReferenceSourceTarget)' == 'ProjectReference' and '%(_ResolvedProjectReferencePaths.OutputItemType)' == 'Analyzer'"
+      />
+    </ItemGroup>
+    <!-- Process each analyzer assembly -->
+    <PropertyGroup Condition="'@(_AnalyzerAssemblies)' != ''">
+      <_FirstAnalyzerAssembly>@(_AnalyzerAssemblies-&gt;Take(1))</_FirstAnalyzerAssembly>
+      <_AnalyzerOutputDir>$([System.IO.Path]::GetDirectoryName('$(_FirstAnalyzerAssembly)'))</_AnalyzerOutputDir>
+      <_LocalAnalyzerDir>$(OutputPath)analyzers</_LocalAnalyzerDir>
+    </PropertyGroup>
+    <!-- Get all DLLs from the first analyzer output directory -->
+    <ItemGroup Condition="'$(_AnalyzerOutputDir)' != ''">
+      <_AnalyzerDependencyFiles Include="$(_AnalyzerOutputDir)\*.dll" />
+    </ItemGroup>
+    <!-- Create analyzer dependency directory -->
+    <MakeDir Directories="$(_LocalAnalyzerDir)" Condition="'@(_AnalyzerDependencyFiles)' != ''" />
+    <!-- Copy analyzer dependencies to a local analyzer folder -->
+    <Copy
+      SourceFiles="@(_AnalyzerDependencyFiles)"
+      DestinationFolder="$(_LocalAnalyzerDir)"
+      SkipUnchangedFiles="true"
+      Condition="'@(_AnalyzerDependencyFiles)' != ''"
+    />
+    <!-- Update analyzer paths to point to our local copy -->
+    <ItemGroup Condition="'@(_AnalyzerAssemblies)' != '' and '@(_AnalyzerDependencyFiles)' != ''">
+      <Analyzer Remove="@(_AnalyzerAssemblies)" />
+      <Analyzer Include="$(_LocalAnalyzerDir)\%(_AnalyzerAssemblies.Filename)%(_AnalyzerAssemblies.Extension)" />
+    </ItemGroup>
+    <Message
+      Text="Copied analyzer dependencies from $(_AnalyzerOutputDir) to $(_LocalAnalyzerDir)"
+      Importance="normal"
+      Condition="'@(_AnalyzerDependencyFiles)' != ''"
+    />
+  </Target>
+</Project>

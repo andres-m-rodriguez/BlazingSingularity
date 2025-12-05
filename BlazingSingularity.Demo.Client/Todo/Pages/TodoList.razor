@@ -1,0 +1,66 @@
+﻿@page "/todos"
+@using BlazingSingularity.Demo.Client.Todo.HttpClients
+@using BlazingSingularity.Demo.Client.Todo.Dtos
+@using BlazingSingularity.Commands
+@inject TodoHttpClient TodoHttpClient
+
+@rendermode @(new InteractiveWebAssemblyRenderMode(false))
+
+
+@* Search bar *@
+<div class="mb-3">
+    <input type="text" class="form-control" placeholder="Search todos..."
+           @bind="searchText" @bind:event="oninput" @onkeyup="OnSearchKeyUp" />
+</div>
+
+@* Foreach todo list *@
+
+@if(LoadTodoListAsyncCommand.IsLoading)
+{
+    <div class="d-flex justify-content-center my-5">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+    
+}
+
+
+@foreach (var todo in todos)
+{
+    <div class="card mb-2">
+        <div class="card-body">
+            <h5 class="card-title">
+                @todo.Title
+            </h5>
+            <p class="card-text">
+                <small class="text-muted">Completed: @todo.IsCompleted</small>
+            </p>
+        </div>
+    </div>
+}
+
+
+@code {
+    private List<TodoForListDto> todos = [];
+    private string? searchText;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTodoListAsyncCommand.ExecuteAsync();
+    }
+
+    private async Task OnSearchKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await LoadTodoListAsyncCommand.ExecuteAsync();
+        }
+    }
+
+    [RelayCommand]
+    public async Task LoadTodoListAsync()
+    {
+        todos = await TodoHttpClient.GetTodosAsync(searchText);
+    }
+}

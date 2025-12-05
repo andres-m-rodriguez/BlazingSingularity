@@ -1,0 +1,43 @@
+﻿@page "/weather/{forecastId:guid}"
+@using BlazingSingularity.Demo.Client.Weather.Dtos
+
+@rendermode @(new InteractiveWebAssemblyRenderMode(false))
+
+<h3>WeatherDetail</h3>
+
+@if (ViewWeatherDetailAsyncCommand.IsLoading)
+{
+    <div class="p-3 border-top d-flex align-items-center gap-2">
+        <div class="spinner-border text-primary" style="width: 1.5rem; height: 1.5rem;"></div>
+        <span class="text-muted">Loading forecasts...</span>
+        <button class="btn btn-danger" @onclick="() => ViewWeatherDetailAsyncCommand.CancelCommand()">Cancel</button>
+    </div>
+}
+else if (weatherDetail is null)
+{
+    <p>No weather detail found.</p>
+}
+else
+{
+    <div class="card shadow-sm mt-3">
+        <div class="card-header bg-primary text-white">
+            Weather Details
+        </div>
+
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Date</dt>
+                <dd class="col-sm-9">@weatherDetail!.Date.ToLongDateString()</dd>
+
+                <dt class="col-sm-3">Temperature</dt>
+                <dd class="col-sm-9">
+                    @weatherDetail.TemperatureC°C /
+                    @weatherDetail.TemperatureF°F
+                </dd>
+
+                <dt class="col-sm-3">Summary</dt>
+                <dd class="col-sm-9">@weatherDetail.Summary</dd>
+            </dl>
+        </div>
+    </div>
+}

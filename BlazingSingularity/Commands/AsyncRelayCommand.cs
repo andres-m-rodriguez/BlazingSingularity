@@ -1,0 +1,163 @@
+namespace BlazingSingularity.Commands;
+
+public class AsyncRelayCommand<T> : IAsyncCommand
+{
+    private readonly Func<T?, CancellationToken, Task>? _executeWithCancellation;
+    private readonly Func<T?, Task>? _execute;
+    private readonly Func<T?, bool>? _canExecute;
+    private bool _isLoading;
+    private CancellationTokenSource? _cancellationTokenSource;
+
+    public AsyncRelayCommand(Func<T?, Task> execute, Func<T?, bool>? canExecute = null)
+    {
+        _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+        _canExecute = canExecute;
+    }
+
+    public AsyncRelayCommand(
+        Func<T?, CancellationToken, Task> execute,
+        Func<T?, bool>? canExecute = null
+    )
+    {
+        _executeWithCancellation = execute ?? throw new ArgumentNullException(nameof(execute));
+        _canExecute = canExecute;
+    }
+
+    public bool IsLoading
+    {
+        get => _isLoading;
+        private set
+        {
+            if (_isLoading != value)
+            {
+                _isLoading = value;
+                IsLoadingChanged?.Invoke(this, EventArgs.Empty);
+                RaiseCanExecuteChanged();
+            }
+        }
+    }
+
+    public bool IsCancellable => _executeWithCancellation != null;
+
+    public event EventHandler? CanExecuteChanged;
+    public event EventHandler? IsLoadingChanged;
+
+    public void CancelCommand()
+    {
+        if (
+            IsCancellable
+            && _cancellationTokenSource != null
+            && !_cancellationTokenSource.IsCancellationRequested
+        )
+        {
+            _cancellationTokenSource.Cancel();
+        }
+    }
+
+    public bool CanExecute(object? parameter)
+    {
+        if (IsLoading)
+            return false;
+
+        return _canExecute == null || _canExecute((T?)parameter);
+    }
+
+    public bool CanExecute(T? parameter)
+    {
+        if (IsLoading)
+            return false;
+
+        return _canExecute == null || _canExecute(parameter);
+    }
+
+    public async void Execute(object? parameter)
+    {
+        await ExecuteAsync(parameter);
+    }
+
+    public async void Execute(T? parameter)
+    {
+        await ExecuteAsync(parameter);
+    }
+
+    public async Task ExecuteAsync(object? parameter)
+    {
+        if (!CanExecute(parameter))
+            return;
+
+        IsLoading = true;
+        _cancellationTokenSource?.Dispose();
+        _cancellationTokenSource = new CancellationTokenSource();
+
+        try
+        {
+            if (_executeWithCancellation != null)
+            {
+                await _executeWithCancellation((T?)parameter, _cancellationTokenSource.Token);
+            }
+            else if (_execute != null)
+            {
+                await _execute((T?)parameter);
+            }
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    public async Task ExecuteAsync(T? parameter)
+    {
+        if (!CanExecute(parameter))
+            return;
+
+        IsLoading = true;
+        _cancellationTokenSource?.Dispose();
+        _cancellationTokenSource = new CancellationTokenSource();
+
+        try
+        {
+            if (_executeWithCancellation != null)
+            {
+                await _executeWithCancellation(parameter, _cancellationTokenSource.Token);
+            }
+            else if (_execute != null)
+            {
+                await _execute(parameter);
+            }
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    public void RaiseCanExecuteChanged()
+    {
+        CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+    }
+}
+
+public class AsyncRelayCommand : AsyncRelayCommand<object>
+{
+    public AsyncRelayCommand(Func<Task> execute, Func<bool>? canExecute = null)
+        : base(_ => execute(), canExecute != null ? _ => canExecute() : null) { }
+
+    public AsyncRelayCommand(Func<CancellationToken, Task> execute, Func<bool>? canExecute = null)
+        : base((_, ct) => execute(ct), canExecute != null ? _ => canExecute() : null) { }
+
+    public new async Task ExecuteAsync()
+    {
+        await ExecuteAsync((object?)null);
+    }
+
+    public new void Execute()
+    {
+        Execute((object?)null);
+    }
+
+    public new bool CanExecute()
+    {
+        return CanExecute((object?)null);
+    }
+}

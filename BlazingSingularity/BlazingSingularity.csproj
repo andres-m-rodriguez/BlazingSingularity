@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- NuGet Package Properties -->
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>BlazingSingularity</PackageId>
+    <Version>1.0.0-beta.1</Version>
+    <Authors>Lorefist</Authors>
+    <Company>Lorefist</Company>
+    <Description>WPF-style ICommand pattern for Blazor with source generators. Automatically generates RelayCommand and AsyncRelayCommand properties from methods decorated with [RelayCommand].</Description>
+    <PackageTags>blazor;command;relay-command;mvvm;source-generator;icommand;async-command</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Copyright>Copyright (c) 2025 Lorefist</Copyright>
+    <!-- Include debug symbols in package -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <!-- Suppress warning about SupportedPlatform not being recognized -->
+    <NoWarn>$(NoWarn);NU5048</NoWarn>
+    <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0" />
+  </ItemGroup>
+  <!-- Reference for local development -->
+  <ItemGroup>
+    <ProjectReference
+      Include="..\BlazingSingularity.SourceGenerators\BlazingSingularity.SourceGenerators.csproj"
+      OutputItemType="Analyzer"
+      ReferenceOutputAssembly="false"
+      PrivateAssets="all"
+    />
+  </ItemGroup>
+  <!-- Pack the source generator into the NuGet package -->
+  <ItemGroup>
+    <None
+      Include="..\BlazingSingularity.SourceGenerators\bin\$(Configuration)\netstandard2.0\BlazingSingularity.SourceGenerators.dll"
+      Pack="true"
+      PackagePath="analyzers/dotnet/cs"
+      Visible="false"
+    />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>
