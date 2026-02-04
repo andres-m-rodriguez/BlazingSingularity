@@ -16,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\BlazingSingularity\BlazingSingularity.csproj" />
     <ProjectReference Include="..\..\BlazingSingularity.SourceGenerators\BlazingSingularity.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\BlazingSingularity.SourceGenerators.Core\BlazingSingularity.SourceGenerators.Core.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
   <ItemGroup>
     <AdditionalFiles Include="**\*.razor" />

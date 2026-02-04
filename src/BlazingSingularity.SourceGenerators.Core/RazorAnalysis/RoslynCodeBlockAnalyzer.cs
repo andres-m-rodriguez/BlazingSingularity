@@ -53,7 +53,7 @@ public class RoslynCodeBlockAnalyzer
         // This gives us access to all the same types and symbols
         var compilation = CSharpCompilation.Create(
             assemblyName: $"RazorCodeBlockAnalysis_{System.Guid.NewGuid():N}",
-            syntaxTrees: new[] { syntaxTree },
+            syntaxTrees: [syntaxTree ],
             references: baseCompilation.References,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
         );

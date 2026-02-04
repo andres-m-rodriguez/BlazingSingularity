@@ -14,14 +14,14 @@ namespace BlazingSingularity.SourceGenerators.RazorAnalysis;
 /// </summary>
 public class RazorContextExtractor
 {
-    private static readonly string[] CommonBlazorUsings = new[]
-    {
+    private static readonly string[] CommonBlazorUsings = 
+    [
         "Microsoft.AspNetCore.Components",
         "System",
         "System.Collections.Generic",
         "System.Linq",
         "System.Threading.Tasks",
-    };
+    ];
 
     /// <summary>
     /// Extracts all necessary context from a Razor file to build a synthetic C# class.
