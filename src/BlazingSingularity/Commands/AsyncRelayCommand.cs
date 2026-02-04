@@ -31,7 +31,6 @@ public class AsyncRelayCommand<T> : IAsyncCommand
             if (_isLoading != value)
             {
                 _isLoading = value;
-                IsLoadingChanged?.Invoke(this, EventArgs.Empty);
                 RaiseCanExecuteChanged();
             }
         }
@@ -40,7 +39,6 @@ public class AsyncRelayCommand<T> : IAsyncCommand
     public bool IsCancellable => _executeWithCancellation != null;
 
     public event EventHandler? CanExecuteChanged;
-    public event EventHandler? IsLoadingChanged;
 
     public void CancelCommand()
     {
@@ -68,16 +66,6 @@ public class AsyncRelayCommand<T> : IAsyncCommand
             return false;
 
         return _canExecute == null || _canExecute(parameter);
-    }
-
-    public async void Execute(object? parameter)
-    {
-        await ExecuteAsync(parameter);
-    }
-
-    public async void Execute(T? parameter)
-    {
-        await ExecuteAsync(parameter);
     }
 
     public async Task ExecuteAsync(object? parameter)
@@ -146,17 +134,12 @@ public class AsyncRelayCommand : AsyncRelayCommand<object>
     public AsyncRelayCommand(Func<CancellationToken, Task> execute, Func<bool>? canExecute = null)
         : base((_, ct) => execute(ct), canExecute != null ? _ => canExecute() : null) { }
 
-    public new async Task ExecuteAsync()
+    public async Task ExecuteAsync()
     {
         await ExecuteAsync((object?)null);
     }
 
-    public new void Execute()
-    {
-        Execute((object?)null);
-    }
-
-    public new bool CanExecute()
+    public bool CanExecute()
     {
         return CanExecute((object?)null);
     }

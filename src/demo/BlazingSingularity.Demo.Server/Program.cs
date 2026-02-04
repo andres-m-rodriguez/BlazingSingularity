@@ -34,7 +34,7 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
-    .AddAdditionalAssemblies(typeof(BlazingSingularity.Demo.Client.AssemblyMarker).Assembly);
+    .AddAdditionalAssemblies(typeof(BlazingSingularity.Demo.Client.Weather.Pages.Weather).Assembly);
 
 
 var api = app.MapGroup("/api").WithTags("API");
