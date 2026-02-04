@@ -13,7 +13,7 @@
     <PackageTags>blazor;command;relay-command;mvvm;source-generator;icommand;async-command</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Copyright>Copyright (c) 2025 Lorefist</Copyright>
+    <Copyright>Copyright (c) 2026 Lorefist</Copyright>
     <!-- Include debug symbols in package -->
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
