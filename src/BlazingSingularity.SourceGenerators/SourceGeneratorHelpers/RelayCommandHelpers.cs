@@ -89,22 +89,42 @@ public static class RelayCommandHelpers
 
         if (commandParameters.Length == 0)
         {
-            commandType = isAsync ? "AsyncRelayCommand" : "RelayCommand";
-            constructorArgs =
-                canExecuteMethod != null
-                    ? $"{methodName}, {canExecuteMethodName}"
-                    : $"{methodName}";
+            commandType = "AsyncRelayCommand";
+            if (isAsync)
+            {
+                constructorArgs =
+                    canExecuteMethod != null
+                        ? $"{methodName}, {canExecuteMethodName}"
+                        : $"{methodName}";
+            }
+            else
+            {
+                var wrapper = $"() => {{ {methodName}(); return System.Threading.Tasks.Task.CompletedTask; }}";
+                constructorArgs =
+                    canExecuteMethod != null
+                        ? $"{wrapper}, {canExecuteMethodName}"
+                        : wrapper;
+            }
         }
         else if (commandParameters.Length == 1)
         {
             var paramType = commandParameters[0].Type.ToDisplayString();
-            commandType = isAsync
-                ? $"AsyncRelayCommand<{paramType}>"
-                : $"RelayCommand<{paramType}>";
-            constructorArgs =
-                canExecuteMethod != null
-                    ? $"{methodName}, {canExecuteMethodName}"
-                    : $"{methodName}";
+            commandType = $"AsyncRelayCommand<{paramType}>";
+            if (isAsync)
+            {
+                constructorArgs =
+                    canExecuteMethod != null
+                        ? $"{methodName}, {canExecuteMethodName}"
+                        : $"{methodName}";
+            }
+            else
+            {
+                var wrapper = $"param => {{ {methodName}(param); return System.Threading.Tasks.Task.CompletedTask; }}";
+                constructorArgs =
+                    canExecuteMethod != null
+                        ? $"{wrapper}, {canExecuteMethodName}"
+                        : wrapper;
+            }
         }
         else if (commandParameters.Length >= 2 && commandParameters.Length <= 8)
         {
@@ -115,16 +135,23 @@ public static class RelayCommandHelpers
             );
             var tupleType = $"({tupleTypes})";
 
-            commandType = isAsync
-                ? $"AsyncRelayCommand<{tupleType}>"
-                : $"RelayCommand<{tupleType}>";
+            commandType = $"AsyncRelayCommand<{tupleType}>";
 
             // Generate lambda wrapper to unwrap tuple
             var tupleItems = string.Join(
                 ", ",
                 Enumerable.Range(1, commandParameters.Length).Select(i => $"param.Item{i}")
             );
-            var lambdaWrapper = $"param => {methodName}({tupleItems})";
+
+            string lambdaWrapper;
+            if (isAsync)
+            {
+                lambdaWrapper = $"param => {methodName}({tupleItems})";
+            }
+            else
+            {
+                lambdaWrapper = $"param => {{ {methodName}({tupleItems}); return System.Threading.Tasks.Task.CompletedTask; }}";
+            }
 
             // Handle CanExecute
             if (canExecuteMethod != null)
