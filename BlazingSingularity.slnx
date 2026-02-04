@@ -1,6 +1,10 @@
 <Solution>
-  <Project Path="BlazingSingularity\BlazingSingularity.csproj" />
-  <Project Path="BlazingSingularity.SourceGenerators\BlazingSingularity.SourceGenerators.csproj" />
-  <Project Path="BlazingSingularity.Demo.Client\BlazingSingularity.Demo.Client.csproj" />
-  <Project Path="BlazingSingularity.Demo.Server\BlazingSingularity.Demo.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src\BlazingSingularity\BlazingSingularity.csproj" />
+    <Project Path="src\BlazingSingularity.SourceGenerators\BlazingSingularity.SourceGenerators.csproj" />
+  </Folder>
+  <Folder Name="/src/demo/">
+    <Project Path="src\demo\BlazingSingularity.Demo.Client\BlazingSingularity.Demo.Client.csproj" />
+    <Project Path="src\demo\BlazingSingularity.Demo.Server\BlazingSingularity.Demo.csproj" />
+  </Folder>
 </Solution>
