@@ -126,47 +126,9 @@ public static class RelayCommandHelpers
                         : wrapper;
             }
         }
-        else if (commandParameters.Length >= 2 && commandParameters.Length <= 8)
-        {
-            // Multiple parameters (2-8) - use ValueTuple
-            var tupleTypes = string.Join(
-                ", ",
-                commandParameters.Select(p => p.Type.ToDisplayString())
-            );
-            var tupleType = $"({tupleTypes})";
-
-            commandType = $"AsyncRelayCommand<{tupleType}>";
-
-            // Generate lambda wrapper to unwrap tuple
-            var tupleItems = string.Join(
-                ", ",
-                Enumerable.Range(1, commandParameters.Length).Select(i => $"param.Item{i}")
-            );
-
-            string lambdaWrapper;
-            if (isAsync)
-            {
-                lambdaWrapper = $"param => {methodName}({tupleItems})";
-            }
-            else
-            {
-                lambdaWrapper = $"param => {{ {methodName}({tupleItems}); return System.Threading.Tasks.Task.CompletedTask; }}";
-            }
-
-            // Handle CanExecute
-            if (canExecuteMethod != null)
-            {
-                var canExecuteLambda = $"param => {canExecuteMethodName}({tupleItems})";
-                constructorArgs = $"{lambdaWrapper}, {canExecuteLambda}";
-            }
-            else
-            {
-                constructorArgs = lambdaWrapper;
-            }
-        }
         else
         {
-            // More than 8 parameters not supported
+            // More than 1 parameter not supported
             return null;
         }
 
