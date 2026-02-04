@@ -110,14 +110,14 @@ public class RelayCommandGenerator : IIncrementalGenerator
                 continue;
             }
 
-            // Report BLAZING002 for methods with >8 parameters
+            // Report BLAZING002 for methods with >1 parameter
             foreach (var method in group)
             {
                 var methodSymbol = semanticModel.GetDeclaredSymbol(method) as IMethodSymbol;
                 if (methodSymbol != null)
                 {
                     var paramInfo = RelayCommandHelpers.GetCommandParameters(methodSymbol);
-                    if (paramInfo.CommandParameters.Length > 8)
+                    if (paramInfo.CommandParameters.Length > 1)
                     {
                         context.ReportDiagnostic(
                             Diagnostic.Create(

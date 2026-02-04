@@ -187,7 +187,7 @@ public class RelayCommandGeneratorTests
     }
 
     [Fact]
-    public void MethodWithMoreThan8Parameters_ReportsBLAZING002()
+    public void MethodWithMoreThan1Parameter_ReportsBLAZING002()
     {
         var source = """
             using System.Threading.Tasks;
@@ -198,9 +198,7 @@ public class RelayCommandGeneratorTests
             public partial class MyViewModel
             {
                 [RelayCommand]
-                public async Task DoSomethingAsync(
-                    int p1, int p2, int p3, int p4,
-                    int p5, int p6, int p7, int p8, int p9)
+                public async Task DoSomethingAsync(int p1, int p2)
                 {
                     await Task.CompletedTask;
                 }
@@ -216,7 +214,7 @@ public class RelayCommandGeneratorTests
     }
 
     [Fact]
-    public void MultipleParameters_ProducesValueTupleCommand()
+    public void MultipleParameters_ReportsBLAZING002()
     {
         var source = """
             using System.Threading.Tasks;
@@ -236,14 +234,10 @@ public class RelayCommandGeneratorTests
 
         var result = GeneratorTestHelper.RunRelayCommandGenerator(source);
 
-        Assert.Empty(result.Diagnostics);
-        var generated = Assert.Single(result.GeneratedTrees);
-        var generatedSource = generated.GetText().ToString();
-
-        Assert.Contains("AsyncRelayCommand<(string, int)>", generatedSource);
-        Assert.Contains("UpdateAsyncCommand", generatedSource);
-        Assert.Contains("param.Item1", generatedSource);
-        Assert.Contains("param.Item2", generatedSource);
+        var diagnostic = Assert.Single(result.Diagnostics);
+        Assert.Equal("BLAZING002", diagnostic.Id);
+        Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
+        Assert.Contains("UpdateAsync", diagnostic.GetMessage());
     }
 
     [Fact]
