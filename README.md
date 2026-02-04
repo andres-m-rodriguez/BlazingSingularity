@@ -1,5 +1,7 @@
 # BlazingSingularity
 
+[![Build](https://github.com/andres-m-rodriguez/BlazingSingularity/actions/workflows/build.yml/badge.svg)](https://github.com/andres-m-rodriguez/BlazingSingularity/actions/workflows/build.yml)
+
 WPF-style `[RelayCommand]` for Blazor, powered by source generators.
 
 ## Installation
