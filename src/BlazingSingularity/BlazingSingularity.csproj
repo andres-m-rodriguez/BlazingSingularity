@@ -35,11 +35,23 @@
       ReferenceOutputAssembly="false"
       PrivateAssets="all"
     />
+    <ProjectReference
+      Include="..\BlazingSingularity.SourceGenerators.Core\BlazingSingularity.SourceGenerators.Core.csproj"
+      OutputItemType="Analyzer"
+      ReferenceOutputAssembly="false"
+      PrivateAssets="all"
+    />
   </ItemGroup>
-  <!-- Pack the source generator into the NuGet package -->
+  <!-- Pack the source generator and its dependencies into the NuGet package -->
   <ItemGroup>
     <None
       Include="..\BlazingSingularity.SourceGenerators\bin\$(Configuration)\netstandard2.0\BlazingSingularity.SourceGenerators.dll"
+      Pack="true"
+      PackagePath="analyzers/dotnet/cs"
+      Visible="false"
+    />
+    <None
+      Include="..\BlazingSingularity.SourceGenerators.Core\bin\$(Configuration)\netstandard2.0\BlazingSingularity.SourceGenerators.Core.dll"
       Pack="true"
       PackagePath="analyzers/dotnet/cs"
       Visible="false"

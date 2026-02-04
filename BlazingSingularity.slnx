@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src\BlazingSingularity\BlazingSingularity.csproj" />
     <Project Path="src\BlazingSingularity.SourceGenerators\BlazingSingularity.SourceGenerators.csproj" />
+    <Project Path="src\BlazingSingularity.SourceGenerators.Core\BlazingSingularity.SourceGenerators.Core.csproj" />
   </Folder>
   <Folder Name="/src/demo/">
     <Project Path="src\demo\BlazingSingularity.Demo.Client\BlazingSingularity.Demo.Client.csproj" />
@@ -9,5 +10,6 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests\BlazingSingularity.SourceGenerators.Tests\BlazingSingularity.SourceGenerators.Tests.csproj" />
+    <Project Path="tests\BlazingSingularity.SourceGenerators.Core.Tests\BlazingSingularity.SourceGenerators.Core.Tests.csproj" />
   </Folder>
 </Solution>
