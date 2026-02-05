@@ -63,6 +63,9 @@ public sealed class RazorEndpointGenerator : IIncrementalGenerator
                         razorContext.ClassName
                     );
 
+                    // Pass usings from the Razor file so generated code can use the same types
+                    sourceBuilder.AddUsings(razorContext.UsingDirectives);
+
                     foreach (var codeBlock in codeBlocks)
                     {
                         // Build synthetic C# class

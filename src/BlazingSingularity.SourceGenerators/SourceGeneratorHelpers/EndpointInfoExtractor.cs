@@ -122,6 +122,9 @@ public static class EndpointInfoExtractor
         return (httpMethod, route);
     }
 
+    // Use fully qualified format to avoid missing using directives in generated code
+    private static readonly SymbolDisplayFormat FullyQualifiedFormat = SymbolDisplayFormat.FullyQualifiedFormat;
+
     private static string GetReturnType(IMethodSymbol methodSymbol)
     {
         var returnType = methodSymbol.ReturnType;
@@ -132,7 +135,7 @@ public static class EndpointInfoExtractor
         {
             if (namedType.TypeArguments.Length == 1)
             {
-                return namedType.TypeArguments[0].ToDisplayString();
+                return namedType.TypeArguments[0].ToDisplayString(FullyQualifiedFormat);
             }
         }
 
@@ -142,7 +145,7 @@ public static class EndpointInfoExtractor
         {
             if (valueTaskType.TypeArguments.Length == 1)
             {
-                return valueTaskType.TypeArguments[0].ToDisplayString();
+                return valueTaskType.TypeArguments[0].ToDisplayString(FullyQualifiedFormat);
             }
         }
 
@@ -154,7 +157,7 @@ public static class EndpointInfoExtractor
             return "void";
         }
 
-        return returnType.ToDisplayString();
+        return returnType.ToDisplayString(FullyQualifiedFormat);
     }
 
     private static EndpointParameterInfo[] ExtractParameters(
@@ -172,7 +175,7 @@ public static class EndpointInfoExtractor
 
             parameters.Add(new EndpointParameterInfo(
                 name: param.Name,
-                type: param.Type.ToDisplayString(),
+                type: param.Type.ToDisplayString(FullyQualifiedFormat),
                 source: source,
                 isNullable: isNullable
             ));

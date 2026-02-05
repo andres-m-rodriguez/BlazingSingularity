@@ -14,11 +14,26 @@ public class EndpointSourceBuilder
     private readonly string _namespaceName;
     private readonly string _className;
     private readonly List<EndpointInfo> _endpoints = new();
+    private readonly List<string> _additionalUsings = new();
 
     public EndpointSourceBuilder(string namespaceName, string className)
     {
         _namespaceName = namespaceName;
         _className = className;
+    }
+
+    /// <summary>
+    /// Adds additional using directives to include in generated code
+    /// </summary>
+    public void AddUsings(IEnumerable<string> usings)
+    {
+        foreach (var u in usings)
+        {
+            if (!_additionalUsings.Contains(u))
+            {
+                _additionalUsings.Add(u);
+            }
+        }
     }
 
     public void AddEndpoint(EndpointInfo endpoint)
@@ -39,6 +54,18 @@ public class EndpointSourceBuilder
         sb.AppendLine("using System.Net.Http.Json;");
         sb.AppendLine("using System.Threading.Tasks;");
         sb.AppendLine("using Microsoft.AspNetCore.Components;");
+
+        // Add additional usings from the Razor file
+        foreach (var u in _additionalUsings)
+        {
+            // Skip if already included
+            if (u != "System.Net.Http" && u != "System.Net.Http.Json" &&
+                u != "System.Threading.Tasks" && u != "Microsoft.AspNetCore.Components")
+            {
+                sb.AppendLine($"using {u};");
+            }
+        }
+
         sb.AppendLine();
         sb.AppendLine($"namespace {_namespaceName};");
         sb.AppendLine();
