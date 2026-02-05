@@ -37,6 +37,36 @@ internal static class GeneratorTestHelper
         return driver.GetRunResult();
     }
 
+    public static GeneratorDriverRunResult RunSignalGenerator(string source)
+    {
+        var syntaxTree = CSharpSyntaxTree.ParseText(source);
+
+        var references = new List<MetadataReference>
+        {
+            MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Attribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Signals.SignalAttribute).Assembly.Location),
+        };
+
+        // Add System.Runtime reference
+        var runtimeDir = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
+        references.Add(MetadataReference.CreateFromFile(Path.Combine(runtimeDir, "System.Runtime.dll")));
+        references.Add(MetadataReference.CreateFromFile(Path.Combine(runtimeDir, "System.Collections.dll")));
+
+        var compilation = CSharpCompilation.Create(
+            assemblyName: "TestAssembly",
+            syntaxTrees: new[] { syntaxTree },
+            references: references,
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        var generator = new SignalGenerator();
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+        driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+
+        return driver.GetRunResult();
+    }
+
     public static GeneratorDriverRunResult RunRazorRelayCommandGenerator(
         string razorContent,
         string filePath)

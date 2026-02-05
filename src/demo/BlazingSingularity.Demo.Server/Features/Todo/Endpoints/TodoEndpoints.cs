@@ -11,10 +11,10 @@ public static class TodoEndpoints
         group
             .MapGet(
                 "/",
-                async ([FromServices] TodoRepository todoRepository) =>
+                async ([FromQuery] string? search, [FromServices] TodoRepository todoRepository) =>
                 {
-                    await Task.Delay(5_000);
-                    return await todoRepository.GetTodosAsync();
+                    await Task.Delay(1_000);
+                    return await todoRepository.GetTodosAsync(search);
                 }
             )
             .WithName("GetTodos")

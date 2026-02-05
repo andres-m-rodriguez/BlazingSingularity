@@ -11,9 +11,17 @@ public class TodoRepository
         new(Guid.CreateVersion7(), "Finish Blazing Singularity project", false, DateTime.Now),
     ];
 
-    public Task<List<TodoForListDto>> GetTodosAsync()
+    public Task<List<TodoForListDto>> GetTodosAsync(string? search = null)
     {
-        return Task.FromResult(_todos);
+        if (string.IsNullOrWhiteSpace(search))
+        {
+            return Task.FromResult(_todos);
+        }
+
+        var filtered = _todos
+            .Where(t => t.Title.Contains(search, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        return Task.FromResult(filtered);
     }
 
     public Task<TodoForListDto?> GetTodoByIdAsync(Guid id)

@@ -25,4 +25,13 @@ public static class DiagnosticDescriptors
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true
     );
+
+    public static readonly DiagnosticDescriptor BLAZING003 = new(
+        id: "BLAZING003",
+        title: "Class must be partial",
+        messageFormat: "Class '{0}' must be declared as partial to use [Signal]",
+        category: "BlazingSingularity.Signals",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
 }

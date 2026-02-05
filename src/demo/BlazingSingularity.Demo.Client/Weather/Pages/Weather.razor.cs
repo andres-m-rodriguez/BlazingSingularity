@@ -1,6 +1,7 @@
 using BlazingSingularity.Commands;
 using BlazingSingularity.Demo.Client.Weather.Dtos;
 using BlazingSingularity.Demo.Client.Weather.HttpClients;
+using BlazingSingularity.Signals;
 using Microsoft.AspNetCore.Components;
 
 namespace BlazingSingularity.Demo.Client.Weather.Pages;
@@ -13,12 +14,21 @@ public partial class Weather(
     private WeatherForListDto[] forecasts = [];
     private WeatherForListDto[] filteredForecasts = [];
 
-    private string summaryFilter = string.Empty;
-    private int? minTemp = null;
-    private int? maxTemp = null;
+    [Signal]
+    private string _summaryFilter = string.Empty;
+
+    [Signal]
+    private int? _minTemp = null;
+
+    [Signal]
+    private int? _maxTemp = null;
 
     protected override async Task OnInitializedAsync()
     {
+        SummaryFilterSignal.OnChange(SearchCommand.RaiseCanExecuteChanged);
+        MinTempSignal.OnChange(SearchCommand.RaiseCanExecuteChanged);
+        MaxTempSignal.OnChange(SearchCommand.RaiseCanExecuteChanged);
+
         await LoadForecastsAsyncCommand.ExecuteAsync();
     }
 
@@ -39,9 +49,9 @@ public partial class Weather(
     private async Task Search(CancellationToken cancellationToken)
     {
         var results = await weatherHttpClient.SearchWeatherForecastAsync(
-            summaryFilter,
-            minTemp,
-            maxTemp
+            SummaryFilter,
+            MinTemp,
+            MaxTemp
         );
         filteredForecasts = results.ToArray();
 
@@ -52,24 +62,18 @@ public partial class Weather(
     {
         return forecasts.Length > 0
             && (
-                !string.IsNullOrWhiteSpace(summaryFilter)
-                || minTemp.HasValue
-                || maxTemp.HasValue
+                !string.IsNullOrWhiteSpace(SummaryFilter)
+                || MinTemp.HasValue
+                || MaxTemp.HasValue
             );
-    }
-
-    private void OnFilterChanged()
-    {
-        SearchCommand.RaiseCanExecuteChanged();
     }
 
     private void ClearFilters()
     {
-        summaryFilter = string.Empty;
-        minTemp = null;
-        maxTemp = null;
+        SummaryFilter = string.Empty;
+        MinTemp = null;
+        MaxTemp = null;
         filteredForecasts = forecasts;
-        SearchCommand.RaiseCanExecuteChanged();
     }
 
     [RelayCommand]

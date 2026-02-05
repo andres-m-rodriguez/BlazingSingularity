@@ -54,8 +54,7 @@
                     <input type="text"
                            class="form-control"
                            placeholder="e.g., 'Hot', 'Cold', 'Warm'"
-                           @bind="summaryFilter"
-                           @bind:after="OnFilterChanged"
+                           @bind="SummaryFilter"
                            disabled="@SearchCommand.IsLoading" />
                 </div>
                 <div class="col-md-3">
@@ -63,8 +62,7 @@
                     <input type="number"
                            class="form-control"
                            placeholder="e.g., -10"
-                           @bind="minTemp"
-                           @bind:after="OnFilterChanged"
+                           @bind="MinTemp"
                            disabled="@SearchCommand.IsLoading" />
                 </div>
                 <div class="col-md-3">
@@ -72,8 +70,7 @@
                     <input type="number"
                            class="form-control"
                            placeholder="e.g., 30"
-                           @bind="maxTemp"
-                           @bind:after="OnFilterChanged"
+                           @bind="MaxTemp"
                            disabled="@SearchCommand.IsLoading" />
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
@@ -109,13 +106,13 @@
                     }
                 </div>
                 <div class="col-auto">
-                    @if (!string.IsNullOrWhiteSpace(summaryFilter) || minTemp.HasValue || maxTemp.HasValue)
+                    @if (!string.IsNullOrWhiteSpace(SummaryFilter) || MinTemp.HasValue || MaxTemp.HasValue)
                     {
                         <span class="badge bg-info text-dark align-self-center">
                             Active filters:
-                            @if (!string.IsNullOrWhiteSpace(summaryFilter)) { <span>Summary</span> }
-                            @if (minTemp.HasValue) { <span>Min Temp</span> }
-                            @if (maxTemp.HasValue) { <span>Max Temp</span> }
+                            @if (!string.IsNullOrWhiteSpace(SummaryFilter)) { <span>Summary</span> }
+                            @if (MinTemp.HasValue) { <span>Min Temp</span> }
+                            @if (MaxTemp.HasValue) { <span>Max Temp</span> }
                         </span>
                     }
                 </div>
