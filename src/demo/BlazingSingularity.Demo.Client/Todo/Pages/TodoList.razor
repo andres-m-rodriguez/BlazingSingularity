@@ -23,19 +23,21 @@
         </div>
     </div>
 }
-
-@foreach (var todo in todos)
+else
 {
-    <div class="card mb-2">
-        <div class="card-body">
-            <h5 class="card-title">
-                @todo.Title
-            </h5>
-            <p class="card-text">
-                <small class="text-muted">Completed: @todo.IsCompleted</small>
-            </p>
+    @foreach (var todo in todos)
+    {
+        <div class="card mb-2">
+            <div class="card-body">
+                <h5 class="card-title">
+                    @todo.Title
+                </h5>
+                <p class="card-text">
+                    <small class="text-muted">Completed: @todo.IsCompleted</small>
+                </p>
+            </div>
         </div>
-    </div>
+    }
 }
 
 @code {
@@ -46,7 +48,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        SearchTextSignal.OnChange(async _ => await LoadTodoListAsyncCommand.ExecuteAsync());
+        SearchTextSignal.OnChange(async _ =>
+        {
+            await LoadTodoListAsyncCommand.ExecuteAsync();
+            await InvokeAsync(StateHasChanged);
+        });
         await LoadTodoListAsyncCommand.ExecuteAsync();
     }
 
