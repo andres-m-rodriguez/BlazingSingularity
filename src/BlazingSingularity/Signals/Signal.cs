@@ -8,7 +8,7 @@ public class Signal<T>
 
     public void OnChange(Action callback) => _callbacks.Add(_ => callback());
 
-    internal void Notify(T value)
+    public void Notify(T value)
     {
         foreach (var callback in _callbacks)
             callback(value);
