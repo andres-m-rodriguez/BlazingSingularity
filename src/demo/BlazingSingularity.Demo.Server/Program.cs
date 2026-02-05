@@ -63,4 +63,7 @@ api.MapGet(
 
 api.MapTodoEndpoints();
 
+// Demo endpoint for [Endpoint] attribute feature
+api.MapGet("/greet", (string name) => $"Hello, {name}! Welcome to BlazingSingularity.");
+
 app.Run();
