@@ -1,0 +1,50 @@
+@page "/endpoint-demo"
+@using BlazingSingularity.Endpoints
+
+@rendermode @(new InteractiveWebAssemblyRenderMode(false))
+
+<h3>Endpoint Demo</h3>
+
+<p>This page demonstrates the <code>[Endpoint]</code> attribute for generating typed HTTP clients.</p>
+
+@if (message is not null)
+{
+    <div class="alert alert-info">
+        @message
+    </div>
+}
+
+<div class="mb-3">
+    <label class="form-label">Enter a name:</label>
+    <input type="text" class="form-control" @bind="name" style="max-width: 300px;" />
+</div>
+
+<button class="btn btn-primary" @onclick="CallGreetEndpoint">
+    Call Greet Endpoint
+</button>
+
+@code {
+    private string? name;
+    private string? message;
+
+    private async Task CallGreetEndpoint()
+    {
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            // This will use the generated GreetEndpoint.Http() proxy
+            message = await GreetEndpoint.Http(name);
+        }
+    }
+
+    /// <summary>
+    /// This endpoint greets the user by name.
+    /// The generator creates both the server-side minimal API endpoint
+    /// and the client-side HTTP client method.
+    /// </summary>
+    [Endpoint(HttpVerb.Get, "/api/greet")]
+    public Task<string> Greet(string name)
+    {
+        // This body is used on the server side
+        return Task.FromResult($"Hello, {name}! Welcome to BlazingSingularity.");
+    }
+}

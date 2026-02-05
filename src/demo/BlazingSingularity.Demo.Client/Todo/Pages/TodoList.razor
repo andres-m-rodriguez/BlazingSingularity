@@ -1,9 +1,8 @@
 ﻿@page "/todos"
-@using BlazingSingularity.Demo.Client.Todo.HttpClients
 @using BlazingSingularity.Demo.Client.Todo.Dtos
 @using BlazingSingularity.Commands
 @using BlazingSingularity.Signals
-@inject TodoHttpClient TodoHttpClient
+@using BlazingSingularity.Endpoints
 
 @rendermode @(new InteractiveWebAssemblyRenderMode(false))
 
@@ -59,6 +58,18 @@ else
     [RelayCommand]
     public async Task LoadTodoListAsync()
     {
-        todos = await TodoHttpClient.GetTodosAsync(SearchText);
+        // Use the generated endpoint proxy instead of manually injected HttpClient
+        todos = await GetTodosEndpoint.Http(SearchText);
+    }
+
+    /// <summary>
+    /// Endpoint for fetching todos with optional search filter.
+    /// The generator creates GetTodosEndpoint.Http() proxy method.
+    /// </summary>
+    [Endpoint(HttpVerb.Get, "/api/todos")]
+    public Task<List<TodoForListDto>> GetTodos(string? search)
+    {
+        // This body would be used on the server side
+        throw new NotImplementedException("Server-side implementation");
     }
 }

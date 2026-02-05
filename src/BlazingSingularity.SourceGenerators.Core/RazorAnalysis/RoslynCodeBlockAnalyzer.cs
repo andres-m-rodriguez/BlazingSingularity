@@ -45,6 +45,7 @@ public class RoslynCodeBlockAnalyzer
                 ClassDeclaration: null,
                 CommandMethods: new List<MethodDeclarationSyntax>(),
                 SignalFields: new List<FieldDeclarationSyntax>(),
+                EndpointMethods: new List<MethodDeclarationSyntax>(),
                 ParseDiagnostics: parseDiagnostics,
                 SyntheticClass: syntheticClass
             );
@@ -78,6 +79,7 @@ public class RoslynCodeBlockAnalyzer
                 ClassDeclaration: null,
                 CommandMethods: new List<MethodDeclarationSyntax>(),
                 SignalFields: new List<FieldDeclarationSyntax>(),
+                EndpointMethods: new List<MethodDeclarationSyntax>(),
                 ParseDiagnostics: parseDiagnostics,
                 SyntheticClass: syntheticClass
             );
@@ -89,6 +91,9 @@ public class RoslynCodeBlockAnalyzer
         // Extract all fields with the [Signal] attribute
         var signalFields = ExtractSignalFields(classDeclaration, semanticModel);
 
+        // Extract all methods with the [Endpoint] attribute
+        var endpointMethods = ExtractEndpointMethods(classDeclaration, semanticModel);
+
         return new CodeBlockAnalysisResult(
             Success: true,
             SyntaxTree: syntaxTree,
@@ -97,6 +102,7 @@ public class RoslynCodeBlockAnalyzer
             ClassDeclaration: classDeclaration,
             CommandMethods: commandMethods,
             SignalFields: signalFields,
+            EndpointMethods: endpointMethods,
             ParseDiagnostics: parseDiagnostics,
             SyntheticClass: syntheticClass
         );
@@ -215,6 +221,62 @@ public class RoslynCodeBlockAnalyzer
     }
 
     /// <summary>
+    /// Extracts all methods that have the [Endpoint] attribute.
+    /// </summary>
+    private List<MethodDeclarationSyntax> ExtractEndpointMethods(
+        ClassDeclarationSyntax classDeclaration,
+        SemanticModel semanticModel
+    )
+    {
+        var endpointMethods = new List<MethodDeclarationSyntax>();
+
+        foreach (var member in classDeclaration.Members)
+        {
+            if (member is MethodDeclarationSyntax method)
+            {
+                if (HasEndpointAttribute(method, semanticModel))
+                {
+                    endpointMethods.Add(method);
+                }
+            }
+        }
+
+        return endpointMethods;
+    }
+
+    /// <summary>
+    /// Checks if a method has the [Endpoint] attribute using semantic analysis.
+    /// </summary>
+    private bool HasEndpointAttribute(
+        MethodDeclarationSyntax method,
+        SemanticModel semanticModel
+    )
+    {
+        foreach (var attributeList in method.AttributeLists)
+        {
+            foreach (var attribute in attributeList.Attributes)
+            {
+                // Get the symbol for the attribute to resolve its full type name
+                var symbolInfo = semanticModel.GetSymbolInfo(attribute);
+
+                if (symbolInfo.Symbol is IMethodSymbol attributeSymbol)
+                {
+                    var attributeType = attributeSymbol.ContainingType;
+                    var fullName = attributeType.ToDisplayString();
+
+                    // Check for the EndpointAttribute
+                    if (fullName == "BlazingSingularity.Endpoints.EndpointAttribute")
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Gets the method symbol for a method declaration.
     /// </summary>
     public static IMethodSymbol? GetMethodSymbol(
@@ -247,6 +309,7 @@ public class RoslynCodeBlockAnalyzer
 /// <param name="ClassDeclaration">The class declaration syntax node</param>
 /// <param name="CommandMethods">List of methods with [RelayCommand] attribute</param>
 /// <param name="SignalFields">List of fields with [Signal] attribute</param>
+/// <param name="EndpointMethods">List of methods with [Endpoint] attribute</param>
 /// <param name="ParseDiagnostics">Any parse errors or warnings</param>
 /// <param name="SyntheticClass">The synthetic class information for line mapping</param>
 public record CodeBlockAnalysisResult(
@@ -257,6 +320,7 @@ public record CodeBlockAnalysisResult(
     ClassDeclarationSyntax? ClassDeclaration,
     List<MethodDeclarationSyntax> CommandMethods,
     List<FieldDeclarationSyntax> SignalFields,
+    List<MethodDeclarationSyntax> EndpointMethods,
     List<Diagnostic> ParseDiagnostics,
     SyntheticClass SyntheticClass
 );
