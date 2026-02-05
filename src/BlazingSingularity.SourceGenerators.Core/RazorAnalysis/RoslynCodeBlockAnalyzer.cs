@@ -44,6 +44,7 @@ public class RoslynCodeBlockAnalyzer
                 SemanticModel: null,
                 ClassDeclaration: null,
                 CommandMethods: new List<MethodDeclarationSyntax>(),
+                SignalFields: new List<FieldDeclarationSyntax>(),
                 ParseDiagnostics: parseDiagnostics,
                 SyntheticClass: syntheticClass
             );
@@ -76,6 +77,7 @@ public class RoslynCodeBlockAnalyzer
                 SemanticModel: semanticModel,
                 ClassDeclaration: null,
                 CommandMethods: new List<MethodDeclarationSyntax>(),
+                SignalFields: new List<FieldDeclarationSyntax>(),
                 ParseDiagnostics: parseDiagnostics,
                 SyntheticClass: syntheticClass
             );
@@ -84,6 +86,9 @@ public class RoslynCodeBlockAnalyzer
         // Extract all methods with the [RelayCommand] attribute
         var commandMethods = ExtractCommandMethods(classDeclaration, semanticModel);
 
+        // Extract all fields with the [Signal] attribute
+        var signalFields = ExtractSignalFields(classDeclaration, semanticModel);
+
         return new CodeBlockAnalysisResult(
             Success: true,
             SyntaxTree: syntaxTree,
@@ -91,6 +96,7 @@ public class RoslynCodeBlockAnalyzer
             SemanticModel: semanticModel,
             ClassDeclaration: classDeclaration,
             CommandMethods: commandMethods,
+            SignalFields: signalFields,
             ParseDiagnostics: parseDiagnostics,
             SyntheticClass: syntheticClass
         );
@@ -153,6 +159,62 @@ public class RoslynCodeBlockAnalyzer
     }
 
     /// <summary>
+    /// Extracts all fields that have the [Signal] attribute.
+    /// </summary>
+    private List<FieldDeclarationSyntax> ExtractSignalFields(
+        ClassDeclarationSyntax classDeclaration,
+        SemanticModel semanticModel
+    )
+    {
+        var signalFields = new List<FieldDeclarationSyntax>();
+
+        foreach (var member in classDeclaration.Members)
+        {
+            if (member is FieldDeclarationSyntax field)
+            {
+                if (HasSignalAttribute(field, semanticModel))
+                {
+                    signalFields.Add(field);
+                }
+            }
+        }
+
+        return signalFields;
+    }
+
+    /// <summary>
+    /// Checks if a field has the [Signal] attribute using semantic analysis.
+    /// </summary>
+    private bool HasSignalAttribute(
+        FieldDeclarationSyntax field,
+        SemanticModel semanticModel
+    )
+    {
+        foreach (var attributeList in field.AttributeLists)
+        {
+            foreach (var attribute in attributeList.Attributes)
+            {
+                // Get the symbol for the attribute to resolve its full type name
+                var symbolInfo = semanticModel.GetSymbolInfo(attribute);
+
+                if (symbolInfo.Symbol is IMethodSymbol attributeSymbol)
+                {
+                    var attributeType = attributeSymbol.ContainingType;
+                    var fullName = attributeType.ToDisplayString();
+
+                    // Check for the SignalAttribute
+                    if (fullName == "BlazingSingularity.Signals.SignalAttribute")
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Gets the method symbol for a method declaration.
     /// </summary>
     public static IMethodSymbol? GetMethodSymbol(
@@ -184,6 +246,7 @@ public class RoslynCodeBlockAnalyzer
 /// <param name="SemanticModel">The semantic model for type/symbol resolution</param>
 /// <param name="ClassDeclaration">The class declaration syntax node</param>
 /// <param name="CommandMethods">List of methods with [RelayCommand] attribute</param>
+/// <param name="SignalFields">List of fields with [Signal] attribute</param>
 /// <param name="ParseDiagnostics">Any parse errors or warnings</param>
 /// <param name="SyntheticClass">The synthetic class information for line mapping</param>
 public record CodeBlockAnalysisResult(
@@ -193,6 +256,7 @@ public record CodeBlockAnalysisResult(
     SemanticModel? SemanticModel,
     ClassDeclarationSyntax? ClassDeclaration,
     List<MethodDeclarationSyntax> CommandMethods,
+    List<FieldDeclarationSyntax> SignalFields,
     List<Diagnostic> ParseDiagnostics,
     SyntheticClass SyntheticClass
 );
