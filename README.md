@@ -74,3 +74,29 @@ public partial class Counter : ComponentBase
     }
 }
 ```
+
+### Error Handling with `TryExecuteAsync`
+
+Use `TryExecuteAsync` for functional-style error handling with the `Result` monad:
+
+```csharp
+var result = await LoadDataCommand.TryExecuteAsync();
+
+result.Match(
+    onSuccess: () => Console.WriteLine("Data loaded successfully"),
+    onFailure: ex => Console.WriteLine($"Failed: {ex.Message}")
+);
+
+// Or use pattern matching
+if (result.IsFailure)
+{
+    ErrorMessage = result.ErrorMessage;
+    return;
+}
+```
+
+The `Result` type provides:
+- `IsSuccess` / `IsFailure` - Check the outcome
+- `Exception` - Access the exception on failure
+- `ErrorMessage` - Shorthand for `Exception?.Message`
+- `Match` - Functional pattern matching with callbacks

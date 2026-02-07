@@ -1,6 +1,6 @@
 namespace BlazingSingularity.Commands;
 
-public class AsyncRelayCommand<T> : IAsyncCommand
+public class AsyncRelayCommand<T> : IAsyncCommand<T>
 {
     private readonly Func<T?, CancellationToken, Task>? _executeWithCancellation;
     private readonly Func<T?, Task>? _execute;
@@ -120,6 +120,47 @@ public class AsyncRelayCommand<T> : IAsyncCommand
         }
     }
 
+    public async Task<Result> TryExecuteAsync(object? parameter)
+    {
+        return await TryExecuteAsync((T?)parameter);
+    }
+
+    public async Task<Result> TryExecuteAsync(T? parameter)
+    {
+        if (!CanExecute(parameter))
+            return Result.Failure(new InvalidOperationException("Command cannot execute."));
+
+        IsLoading = true;
+        _cancellationTokenSource?.Dispose();
+        _cancellationTokenSource = new CancellationTokenSource();
+
+        try
+        {
+            if (_executeWithCancellation != null)
+            {
+                await _executeWithCancellation(parameter, _cancellationTokenSource.Token);
+            }
+            else if (_execute != null)
+            {
+                await _execute(parameter);
+            }
+
+            return Result.Success();
+        }
+        catch (OperationCanceledException ex)
+        {
+            return Result.Failure(ex);
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure(ex);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
     public void RaiseCanExecuteChanged()
     {
         CanExecuteChanged?.Invoke(this, EventArgs.Empty);
@@ -137,6 +178,11 @@ public class AsyncRelayCommand : AsyncRelayCommand<object>
     public async Task ExecuteAsync()
     {
         await ExecuteAsync((object?)null);
+    }
+
+    public async Task<Result> TryExecuteAsync()
+    {
+        return await TryExecuteAsync((object?)null);
     }
 
     public bool CanExecute()
