@@ -15,12 +15,14 @@ public class CommandSourceBuilder
     private readonly StringBuilder _sb = new();
     private readonly string _namespaceName;
     private readonly string _className;
+    private readonly bool _isBlazorComponent;
     private readonly List<CommandInfo> _commands = new();
 
-    public CommandSourceBuilder(string namespaceName, string className)
+    public CommandSourceBuilder(string namespaceName, string className, bool isBlazorComponent = false)
     {
         _namespaceName = namespaceName;
         _className = className;
+        _isBlazorComponent = isBlazorComponent;
     }
 
     /// <summary>
@@ -94,9 +96,15 @@ public class CommandSourceBuilder
         // Generate each command
         foreach (var command in _commands)
         {
+            var constructorArgs = command.ConstructorArgs;
+            if (_isBlazorComponent)
+            {
+                constructorArgs += ", () => InvokeAsync(StateHasChanged)";
+            }
+
             _sb.AppendLine($"    private {command.CommandType}? {command.CommandFieldName};");
             _sb.AppendLine(
-                $"    public {command.CommandType} {command.CommandPropertyName} => {command.CommandFieldName} ??= new({command.ConstructorArgs});"
+                $"    public {command.CommandType} {command.CommandPropertyName} => {command.CommandFieldName} ??= new({constructorArgs});"
             );
             _sb.AppendLine();
         }

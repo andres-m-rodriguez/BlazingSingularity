@@ -15,6 +15,7 @@ internal static class GeneratorTestHelper
             MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Attribute).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Commands.RelayCommandAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Components.ComponentBase).Assembly.Location),
         };
 
         // Add System.Runtime reference
