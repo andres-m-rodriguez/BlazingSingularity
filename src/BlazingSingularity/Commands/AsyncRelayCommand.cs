@@ -5,6 +5,7 @@ public class AsyncRelayCommand<T> : IAsyncCommand<T>
     private readonly Func<T?, CancellationToken, Task>? _executeWithCancellation;
     private readonly Func<T?, Task>? _execute;
     private readonly Func<T?, bool>? _canExecute;
+    private readonly Func<Task>? _notifyStateChanged;
     private bool _isLoading;
     private CancellationTokenSource? _cancellationTokenSource;
 
@@ -15,12 +16,34 @@ public class AsyncRelayCommand<T> : IAsyncCommand<T>
     }
 
     public AsyncRelayCommand(
+        Func<T?, Task> execute,
+        Func<T?, bool>? canExecute,
+        Func<Task>? notifyStateChanged
+    )
+    {
+        _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+        _canExecute = canExecute;
+        _notifyStateChanged = notifyStateChanged;
+    }
+
+    public AsyncRelayCommand(
         Func<T?, CancellationToken, Task> execute,
         Func<T?, bool>? canExecute = null
     )
     {
         _executeWithCancellation = execute ?? throw new ArgumentNullException(nameof(execute));
         _canExecute = canExecute;
+    }
+
+    public AsyncRelayCommand(
+        Func<T?, CancellationToken, Task> execute,
+        Func<T?, bool>? canExecute,
+        Func<Task>? notifyStateChanged
+    )
+    {
+        _executeWithCancellation = execute ?? throw new ArgumentNullException(nameof(execute));
+        _canExecute = canExecute;
+        _notifyStateChanged = notifyStateChanged;
     }
 
     public bool IsLoading
@@ -91,6 +114,10 @@ public class AsyncRelayCommand<T> : IAsyncCommand<T>
         finally
         {
             IsLoading = false;
+            if (_notifyStateChanged != null)
+            {
+                await _notifyStateChanged();
+            }
         }
     }
 
@@ -117,6 +144,10 @@ public class AsyncRelayCommand<T> : IAsyncCommand<T>
         finally
         {
             IsLoading = false;
+            if (_notifyStateChanged != null)
+            {
+                await _notifyStateChanged();
+            }
         }
     }
 
@@ -158,6 +189,10 @@ public class AsyncRelayCommand<T> : IAsyncCommand<T>
         finally
         {
             IsLoading = false;
+            if (_notifyStateChanged != null)
+            {
+                await _notifyStateChanged();
+            }
         }
     }
 
@@ -172,8 +207,28 @@ public class AsyncRelayCommand : AsyncRelayCommand<object>
     public AsyncRelayCommand(Func<Task> execute, Func<bool>? canExecute = null)
         : base(_ => execute(), canExecute != null ? _ => canExecute() : null) { }
 
+    public AsyncRelayCommand(
+        Func<Task> execute,
+        Func<bool>? canExecute,
+        Func<Task>? notifyStateChanged
+    )
+        : base(_ => execute(), canExecute != null ? _ => canExecute() : null, notifyStateChanged)
+    { }
+
     public AsyncRelayCommand(Func<CancellationToken, Task> execute, Func<bool>? canExecute = null)
         : base((_, ct) => execute(ct), canExecute != null ? _ => canExecute() : null) { }
+
+    public AsyncRelayCommand(
+        Func<CancellationToken, Task> execute,
+        Func<bool>? canExecute,
+        Func<Task>? notifyStateChanged
+    )
+        : base(
+            (_, ct) => execute(ct),
+            canExecute != null ? _ => canExecute() : null,
+            notifyStateChanged
+        )
+    { }
 
     public async Task ExecuteAsync()
     {

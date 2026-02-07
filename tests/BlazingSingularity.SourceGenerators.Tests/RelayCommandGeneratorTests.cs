@@ -32,7 +32,7 @@ public class RelayCommandGeneratorTests
 
         Assert.Contains("AsyncRelayCommand", generatedSource);
         Assert.Contains("LoadDataAsyncCommand", generatedSource);
-        Assert.Contains("new(LoadDataAsync)", generatedSource);
+        Assert.Contains("new(LoadDataAsync, null)", generatedSource);
     }
 
     [Fact]
@@ -270,5 +270,66 @@ public class RelayCommandGeneratorTests
         // CancellationToken is filtered out, so only Guid remains as a single parameter
         Assert.Contains("AsyncRelayCommand<System.Guid>", generatedSource);
         Assert.Contains("DeleteItemAsyncCommand", generatedSource);
+    }
+
+    [Fact]
+    public void BlazorComponent_WiresUpStateHasChanged()
+    {
+        var source = """
+            using System.Threading.Tasks;
+            using BlazingSingularity.Commands;
+            using Microsoft.AspNetCore.Components;
+
+            namespace TestApp;
+
+            public partial class MyComponent : ComponentBase
+            {
+                [RelayCommand]
+                public async Task LoadDataAsync()
+                {
+                    await Task.CompletedTask;
+                }
+            }
+            """;
+
+        var result = GeneratorTestHelper.RunRelayCommandGenerator(source);
+
+        Assert.Empty(result.Diagnostics);
+        var generated = Assert.Single(result.GeneratedTrees);
+        var generatedSource = generated.GetText().ToString();
+
+        Assert.Contains("AsyncRelayCommand", generatedSource);
+        Assert.Contains("LoadDataAsyncCommand", generatedSource);
+        Assert.Contains("() => InvokeAsync(StateHasChanged)", generatedSource);
+    }
+
+    [Fact]
+    public void NonBlazorComponent_DoesNotWireStateHasChanged()
+    {
+        var source = """
+            using System.Threading.Tasks;
+            using BlazingSingularity.Commands;
+
+            namespace TestApp;
+
+            public partial class MyViewModel
+            {
+                [RelayCommand]
+                public async Task LoadDataAsync()
+                {
+                    await Task.CompletedTask;
+                }
+            }
+            """;
+
+        var result = GeneratorTestHelper.RunRelayCommandGenerator(source);
+
+        Assert.Empty(result.Diagnostics);
+        var generated = Assert.Single(result.GeneratedTrees);
+        var generatedSource = generated.GetText().ToString();
+
+        Assert.Contains("AsyncRelayCommand", generatedSource);
+        Assert.DoesNotContain("InvokeAsync", generatedSource);
+        Assert.DoesNotContain("StateHasChanged", generatedSource);
     }
 }

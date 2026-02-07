@@ -82,7 +82,7 @@ public static class RelayCommandHelpers
         var returnType = methodSymbol.ReturnType;
         var isAsync = returnType.Name == "Task";
         var methodName = methodSymbol.Name;
-        var canExecuteMethodName = canExecuteMethod != null ? "Can" + methodName : null;
+        var canExecuteArg = canExecuteMethod != null ? "Can" + methodName : "null";
 
         string commandType;
         string constructorArgs;
@@ -92,18 +92,12 @@ public static class RelayCommandHelpers
             commandType = "AsyncRelayCommand";
             if (isAsync)
             {
-                constructorArgs =
-                    canExecuteMethod != null
-                        ? $"{methodName}, {canExecuteMethodName}"
-                        : $"{methodName}";
+                constructorArgs = $"{methodName}, {canExecuteArg}";
             }
             else
             {
                 var wrapper = $"() => {{ {methodName}(); return System.Threading.Tasks.Task.CompletedTask; }}";
-                constructorArgs =
-                    canExecuteMethod != null
-                        ? $"{wrapper}, {canExecuteMethodName}"
-                        : wrapper;
+                constructorArgs = $"{wrapper}, {canExecuteArg}";
             }
         }
         else if (commandParameters.Length == 1)
@@ -112,18 +106,12 @@ public static class RelayCommandHelpers
             commandType = $"AsyncRelayCommand<{paramType}>";
             if (isAsync)
             {
-                constructorArgs =
-                    canExecuteMethod != null
-                        ? $"{methodName}, {canExecuteMethodName}"
-                        : $"{methodName}";
+                constructorArgs = $"{methodName}, {canExecuteArg}";
             }
             else
             {
                 var wrapper = $"param => {{ {methodName}(param); return System.Threading.Tasks.Task.CompletedTask; }}";
-                constructorArgs =
-                    canExecuteMethod != null
-                        ? $"{wrapper}, {canExecuteMethodName}"
-                        : wrapper;
+                constructorArgs = $"{wrapper}, {canExecuteArg}";
             }
         }
         else

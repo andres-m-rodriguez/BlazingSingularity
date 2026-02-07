@@ -171,7 +171,7 @@ public class RelayCommandGenerator : IIncrementalGenerator
         bool isBlazorComponent
     )
     {
-        var builder = new CommandSourceBuilder(namespaceName, className);
+        var builder = new CommandSourceBuilder(namespaceName, className, isBlazorComponent);
 
         foreach (var method in methods)
         {
