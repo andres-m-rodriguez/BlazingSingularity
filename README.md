@@ -100,3 +100,47 @@ The `Result` type provides:
 - `Exception` - Access the exception on failure
 - `ErrorMessage` - Shorthand for `Exception?.Message`
 - `Match` - Functional pattern matching with callbacks
+
+### Reactive State with `[Signal]`
+
+Use `[Signal]` to create reactive state that can notify subscribers when values change:
+
+```csharp
+using BlazingSingularity.Signals;
+
+public partial class SearchPage : ComponentBase
+{
+    [Signal]
+    private string _searchText = string.Empty;
+
+    [Signal]
+    private int? _minPrice = null;
+
+    protected override void OnInitialized()
+    {
+        // Subscribe to changes
+        SearchTextSignal.OnChange(newValue =>
+        {
+            Console.WriteLine($"Search changed to: {newValue}");
+        });
+
+        // Trigger command CanExecute re-evaluation on change
+        MinPriceSignal.OnChange(SearchCommand.RaiseCanExecuteChanged);
+    }
+
+    [RelayCommand]
+    private void Search() { /* ... */ }
+
+    private bool CanSearch() => !string.IsNullOrWhiteSpace(SearchText);
+}
+```
+
+The source generator creates:
+- A public property (`SearchText`) that notifies on change
+- A `Signal<T>` accessor (`SearchTextSignal`) for subscribing to changes
+
+Use the generated property in your Razor markup:
+
+```razor
+<input @bind="SearchText" @bind:event="oninput" />
+```
