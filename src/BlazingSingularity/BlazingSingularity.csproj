@@ -6,7 +6,7 @@
     <!-- NuGet Package Properties -->
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>BlazingSingularity</PackageId>
-    <Version>1.0.0-beta.1</Version>
+    <Version>1.0.0-beta.2</Version>
     <Authors>Lorefist</Authors>
     <Company>Lorefist</Company>
     <Description>WPF-style ICommand pattern for Blazor with source generators. Automatically generates RelayCommand and AsyncRelayCommand properties from methods decorated with [RelayCommand].</Description>

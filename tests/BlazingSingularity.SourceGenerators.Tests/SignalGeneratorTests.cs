@@ -30,7 +30,7 @@ public class SignalGeneratorTests
         Assert.Contains("_countSignal", generatedSource);
         Assert.Contains("public int Count", generatedSource);
         Assert.Contains("CountSignal", generatedSource);
-        Assert.Contains("_countSignal.Notify(value)", generatedSource);
+        Assert.Contains("_countSignal.Value", generatedSource);
     }
 
     [Fact]
@@ -114,7 +114,7 @@ public class SignalGeneratorTests
     }
 
     [Fact]
-    public void GeneratedProperty_IncludesEqualityCheck()
+    public void GeneratedProperty_DelegatesToSignalValue()
     {
         var source = """
             using BlazingSingularity.Signals;
@@ -134,7 +134,9 @@ public class SignalGeneratorTests
         var generated = Assert.Single(result.GeneratedTrees);
         var generatedSource = generated.GetText().ToString();
 
-        Assert.Contains("EqualityComparer<int>.Default.Equals(_value, value)", generatedSource);
+        // Property getter and setter delegate to signal's Value
+        Assert.Contains("get => _valueSignal.Value;", generatedSource);
+        Assert.Contains("set => _valueSignal.Value = value;", generatedSource);
     }
 
     [Fact]
