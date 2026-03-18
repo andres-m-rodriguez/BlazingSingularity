@@ -144,3 +144,66 @@ Use the generated property in your Razor markup:
 ```razor
 <input @bind="SearchText" @bind:event="oninput" />
 ```
+
+### Async Data Fetching with `Fetch<T>`
+
+Use `Fetch<T>` for reactive async data loading with built-in loading/error/success states:
+
+```csharp
+using BlazingSingularity.Fetch;
+
+public partial class TodosPage : ComponentBase, IDisposable
+{
+    [Inject] private HttpClient Http { get; set; } = null!;
+
+    private Fetch<List<Todo>> TodosFetch = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        TodosFetch = new Fetch<List<Todo>>(
+            ct => Http.GetFromJsonAsync<List<Todo>>("/api/todos", ct)!,
+            () => InvokeAsync(StateHasChanged)
+        );
+        await TodosFetch.FetchAsync();
+    }
+
+    public void Dispose() => TodosFetch.Dispose();
+}
+```
+
+```razor
+@if (TodosFetch.IsLoading) { <Spinner /> }
+else if (TodosFetch.IsError) { <p>Error: @TodosFetch.Error?.Message</p> }
+else if (TodosFetch.HasData)
+{
+    @foreach (var todo in TodosFetch.Data!)
+    {
+        <p>@todo.Title</p>
+    }
+}
+```
+
+### Stale-While-Revalidate with `BackgroundFetch<T>`
+
+Use `BackgroundFetch<T>` to show cached data instantly while refreshing in the background:
+
+```csharp
+private BackgroundFetch<OrgDto> OrgFetch = null!;
+
+protected override async Task OnInitializedAsync()
+{
+    OrgFetch = new BackgroundFetch<OrgDto>(
+        ct => Http.GetFromJsonAsync<OrgDto>($"/api/orgs/{OrgId}", ct)!,
+        () => InvokeAsync(StateHasChanged)
+    );
+    OrgFetch.SetInitialData(CachedOrg);  // Display immediately
+    await OrgFetch.FetchAsync();          // Refresh in background
+}
+```
+
+```razor
+<div class="@(OrgFetch.IsStale ? "opacity-50" : "")">
+    @if (OrgFetch.IsRefreshing) { <SmallSpinner /> }
+    <h1>@OrgFetch.Data?.Name</h1>
+</div>
+```
