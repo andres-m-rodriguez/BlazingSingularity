@@ -1,0 +1,211 @@
+@page "/fetch-demo"
+@using BlazingSingularity.Demo.Client.Todo.HttpClients
+@using BlazingSingularity.Demo.Client.Todo.Dtos
+@using BlazingSingularity.Fetch
+@inject TodoHttpClient TodoHttpClient
+
+@rendermode @(new InteractiveWebAssemblyRenderMode(false))
+
+<h3>Fetch Demo</h3>
+
+<div class="row">
+    @* Basic Fetch<T> Demo *@
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Basic Fetch&lt;T&gt;</h5>
+                <small class="text-muted">Simple async data fetching with loading/error states</small>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <button class="btn btn-primary btn-sm me-2" @onclick="() => BasicFetch.FetchAsync()">
+                        Fetch
+                    </button>
+                    <button class="btn btn-secondary btn-sm me-2" @onclick="() => BasicFetch.RefetchAsync()">
+                        Refetch
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" @onclick="() => BasicFetch.Reset()">
+                        Reset
+                    </button>
+                </div>
+
+                <div class="mb-2">
+                    <span class="badge @GetStatusBadgeClass(BasicFetch.Status)">@BasicFetch.Status</span>
+                    @if (BasicFetch.HasData)
+                    {
+                        <span class="badge bg-info ms-1">HasData</span>
+                    }
+                </div>
+
+                @if (BasicFetch.IsLoading)
+                {
+                    <div class="d-flex justify-content-center my-3">
+                        <div class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                }
+                else if (BasicFetch.IsError)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @BasicFetch.Error?.Message
+                    </div>
+                }
+                else if (BasicFetch.HasData)
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var todo in BasicFetch.Data!.Take(5))
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                @todo.Title
+                                @if (todo.IsCompleted)
+                                {
+                                    <span class="badge bg-success">Done</span>
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted">Click "Fetch" to load data</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* BackgroundFetch<T> Demo *@
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>BackgroundFetch&lt;T&gt;</h5>
+                <small class="text-muted">Stale-while-revalidate pattern with instant display</small>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <button class="btn btn-primary btn-sm me-2" @onclick="() => BgFetch.FetchAsync()">
+                        Fetch
+                    </button>
+                    <button class="btn btn-secondary btn-sm me-2" @onclick="() => BgFetch.RefetchAsync()">
+                        Refetch
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" @onclick="() => BgFetch.Reset()">
+                        Reset
+                    </button>
+                </div>
+
+                <div class="mb-2">
+                    <span class="badge @GetStatusBadgeClass(BgFetch.Status)">@BgFetch.Status</span>
+                    @if (BgFetch.IsStale)
+                    {
+                        <span class="badge bg-warning ms-1">Stale</span>
+                    }
+                    @if (BgFetch.IsRefreshing)
+                    {
+                        <span class="badge bg-info ms-1">Refreshing...</span>
+                    }
+                    @if (BgFetch.HasData)
+                    {
+                        <span class="badge bg-info ms-1">HasData</span>
+                    }
+                </div>
+
+                @if (BgFetch.LastFetchedAt.HasValue)
+                {
+                    <small class="text-muted d-block mb-2">
+                        Last fetched: @BgFetch.LastFetchedAt.Value.ToLocalTime().ToString("HH:mm:ss")
+                    </small>
+                }
+
+                @if (BgFetch.IsLoading && !BgFetch.HasData)
+                {
+                    <div class="d-flex justify-content-center my-3">
+                        <div class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                }
+                else if (BgFetch.IsError && !BgFetch.HasData)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @BgFetch.Error?.Message
+                    </div>
+                }
+                else if (BgFetch.HasData)
+                {
+                    <div class="position-relative">
+                        @if (BgFetch.IsRefreshing)
+                        {
+                            <div class="position-absolute top-0 end-0">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">Refreshing...</span>
+                                </div>
+                            </div>
+                        }
+                        <ul class="list-group list-group-flush @(BgFetch.IsStale ? "opacity-75" : "")">
+                            @foreach (var todo in BgFetch.Data!.Take(5))
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    @todo.Title
+                                    @if (todo.IsCompleted)
+                                    {
+                                        <span class="badge bg-success">Done</span>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">Click "Fetch" to load data (initial data will display instantly)</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Fetch<List<TodoForListDto>> BasicFetch = null!;
+    private BackgroundFetch<List<TodoForListDto>> BgFetch = null!;
+
+    protected override void OnInitialized()
+    {
+        BasicFetch = new Fetch<List<TodoForListDto>>(
+            async ct =>
+            {
+                await Task.Delay(1000, ct); // Simulate network delay
+                return await TodoHttpClient.GetTodosAsync();
+            },
+            () => InvokeAsync(StateHasChanged)
+        );
+
+        BgFetch = new BackgroundFetch<List<TodoForListDto>>(
+            async ct =>
+            {
+                await Task.Delay(1500, ct); // Simulate slower network delay
+                return await TodoHttpClient.GetTodosAsync();
+            },
+            () => InvokeAsync(StateHasChanged)
+        );
+
+        // Set initial data to demonstrate stale-while-revalidate
+        BgFetch.SetInitialData([
+            new TodoForListDto(Guid.NewGuid(), "Initial cached item 1", false, DateTime.UtcNow),
+            new TodoForListDto(Guid.NewGuid(), "Initial cached item 2", true, DateTime.UtcNow),
+            new TodoForListDto(Guid.NewGuid(), "Initial cached item 3", false, DateTime.UtcNow)
+        ]);
+        BgFetch.StaleTime = TimeSpan.FromSeconds(30);
+
+        _ = BgFetch.FetchAsync();
+    }
+
+    private string GetStatusBadgeClass(FetchStatus status) => status switch
+    {
+        FetchStatus.Idle => "bg-secondary",
+        FetchStatus.Loading => "bg-primary",
+        FetchStatus.Success => "bg-success",
+        FetchStatus.Error => "bg-danger",
+        _ => "bg-secondary"
+    };
+}
