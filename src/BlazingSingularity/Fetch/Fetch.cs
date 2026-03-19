@@ -1,6 +1,6 @@
 namespace BlazingSingularity.Fetch;
 
-public class Fetch<T> : IFetch<T>, IDisposable
+public class Fetch<T> : IFetch<T>
 {
     private readonly Func<CancellationToken, Task<T>> _fetchFunc;
     private readonly Func<Task>? _notifyStateChanged;

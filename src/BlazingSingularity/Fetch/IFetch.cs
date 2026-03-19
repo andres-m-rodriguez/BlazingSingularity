@@ -1,6 +1,6 @@
 namespace BlazingSingularity.Fetch;
 
-public interface IFetch<T>
+public interface IFetch<T> : IDisposable
 {
     FetchStatus Status { get; }
     T? Data { get; }
